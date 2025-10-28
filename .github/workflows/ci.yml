@@ -32,31 +32,41 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
-
       - name: Set up Google Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
         with:
           project_id: ${{ secrets.GCS_PROJECT_ID }}
 
-      - name: Configure gcloud for signed URLs
+      - name: Authenticate to Google Cloud
         run: |
-          # Write service account key to a file for signed URL operations
+          # Write service account key to a file
           echo '${{ secrets.GCP_SA_KEY }}' > $HOME/gcp-sa-key.json
-          # Activate service account with the key file (required for sign-url command)
+          # Authenticate gcloud with the service account key file (required for sign-url)
           gcloud auth activate-service-account --key-file=$HOME/gcp-sa-key.json
           # Set the project
           gcloud config set project ${{ secrets.GCS_PROJECT_ID }}
+          # Set GOOGLE_APPLICATION_CREDENTIALS to point to the key file
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$HOME/gcp-sa-key.json" >> $GITHUB_ENV
 
       - name: Verify gcloud authentication
         run: |
+          echo "=== Verifying gcloud authentication ==="
           gcloud auth list
           gcloud config list
-          echo "Testing bucket access..."
+          echo ""
+          echo "=== Testing bucket access ==="
           gcloud storage ls gs://${{ secrets.GCS_BUCKET_NAME }} || echo "Bucket check complete"
+          echo ""
+          echo "=== Testing signed URL capability ==="
+          # Create a test file to verify sign-url works
+          echo "test" > /tmp/test-auth.txt
+          gcloud storage cp /tmp/test-auth.txt gs://${{ secrets.GCS_BUCKET_NAME }}/test-auth-verify.txt
+          # Try to generate a signed URL (this will fail if auth is wrong)
+          gcloud storage sign-url gs://${{ secrets.GCS_BUCKET_NAME }}/test-auth-verify.txt --duration=1m
+          # Cleanup test file
+          gcloud storage rm gs://${{ secrets.GCS_BUCKET_NAME }}/test-auth-verify.txt
+          rm /tmp/test-auth.txt
+          echo "✓ Authentication verified successfully"
 
       - name: Install Playwright browsers
         run: |
