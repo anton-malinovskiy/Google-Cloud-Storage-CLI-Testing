@@ -270,16 +270,37 @@ public class BrowserHelper implements AutoCloseable {
             page = context.newPage();
             final Page finalPage = page;
 
-            // Set up download handling
-            Download download = finalPage.waitForDownload(() -> {
-                finalPage.navigate(url);
-            });
+            // Store the response for later use
+            final Response[] responseHolder = {null};
 
-            // Save the downloaded file
-            download.saveAs(Paths.get(downloadPath));
+            // Try to wait for download event (for binary files with Content-Disposition header)
+            try {
+                Download download = finalPage.waitForDownload(new Page.WaitForDownloadOptions().setTimeout(5000), () -> {
+                    responseHolder[0] = finalPage.navigate(url);
+                });
+                download.saveAs(Paths.get(downloadPath));
+                logger.info("File downloaded successfully via download event to: {}", downloadPath);
+                return true;
+            } catch (com.microsoft.playwright.TimeoutError e) {
+                // Download event didn't trigger - file might be displayed inline (e.g., text files)
+                logger.info("Download event not triggered, attempting to fetch content directly");
 
-            logger.info("File downloaded successfully to: {}", downloadPath);
-            return true;
+                // The page has already navigated inside waitForDownload
+                Response response = responseHolder[0];
+
+                if (response != null && response.status() == 200) {
+                    // Get the content as bytes
+                    byte[] content = response.body();
+
+                    // Write to file
+                    java.nio.file.Files.write(Paths.get(downloadPath), content);
+                    logger.info("File content fetched and saved successfully to: {}", downloadPath);
+                    return true;
+                } else {
+                    logger.error("Failed to fetch file content, status: {}", response != null ? response.status() : "null");
+                    return false;
+                }
+            }
 
         } catch (Exception e) {
             logger.error("Error downloading file", e);
