@@ -42,6 +42,15 @@ jobs:
         with:
           project_id: ${{ secrets.GCS_PROJECT_ID }}
 
+      - name: Configure gcloud for signed URLs
+        run: |
+          # Write service account key to a file for signed URL operations
+          echo '${{ secrets.GCP_SA_KEY }}' > $HOME/gcp-sa-key.json
+          # Activate service account with the key file (required for sign-url command)
+          gcloud auth activate-service-account --key-file=$HOME/gcp-sa-key.json
+          # Set the project
+          gcloud config set project ${{ secrets.GCS_PROJECT_ID }}
+
       - name: Verify gcloud authentication
         run: |
           gcloud auth list
@@ -134,6 +143,12 @@ jobs:
         run: |
           echo "Cleaning up test files from GCS bucket..."
           gcloud storage rm gs://${{ secrets.GCS_BUCKET_NAME }}/test-ci-* --recursive || echo "Cleanup complete (no files to remove or error occurred)"
+
+      - name: Cleanup service account key
+        if: always()
+        run: |
+          # Remove the service account key file
+          rm -f $HOME/gcp-sa-key.json
 
       - name: Notify on failure
         if: failure()

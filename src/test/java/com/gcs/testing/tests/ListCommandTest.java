@@ -213,6 +213,11 @@ public class ListCommandTest extends BaseTest {
     public void testListBucketRoot() {
         logger.info("=== Testing list bucket root ===");
 
+        // Create at least one test file to ensure bucket has content
+        String testFileName = generateTestFileName("txt");
+        String testContent = "Test file for bucket root listing";
+        createTestFile(testFileName, testContent);
+
         // List bucket root
         String bucketPath = "gs://" + TestConfig.getBucketName();
         List<String> files = GCloudCliExecutor.listBucket(bucketPath);
