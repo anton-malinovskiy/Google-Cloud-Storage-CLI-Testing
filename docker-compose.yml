@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  gcs-cli-tests:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gcs-cli-testing
+    environment:
+      - GCS_PROJECT_ID=${GCS_PROJECT_ID}
+      - GCS_BUCKET_NAME=${GCS_BUCKET_NAME}
+      - GCS_TEST_FILE_PREFIX=${GCS_TEST_FILE_PREFIX:-test-}
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/credentials/key.json
+    volumes:
+      # Mount credentials if using service account
+      - ${GOOGLE_APPLICATION_CREDENTIALS:-./credentials/key.json}:/app/credentials/key.json:ro
+      # Mount .config for gcloud auth (if using user auth)
+      - ~/.config/gcloud:/root/.config/gcloud:ro
+      # Mount test results
+      - ./target:/app/target
+    command: test
+    networks:
+      - test-network
+
+  # Optional: Run specific test only
+  gcs-sign-url-test:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gcs-sign-url-test
+    environment:
+      - GCS_PROJECT_ID=${GCS_PROJECT_ID}
+      - GCS_BUCKET_NAME=${GCS_BUCKET_NAME}
+      - GCS_TEST_FILE_PREFIX=${GCS_TEST_FILE_PREFIX:-test-}
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/credentials/key.json
+    volumes:
+      - ${GOOGLE_APPLICATION_CREDENTIALS:-./credentials/key.json}:/app/credentials/key.json:ro
+      - ~/.config/gcloud:/root/.config/gcloud:ro
+      - ./target:/app/target
+    command: test -Dtest=SignUrlTest
+    networks:
+      - test-network
+    profiles:
+      - signurl-only
+
+networks:
+  test-network:
+    driver: bridge

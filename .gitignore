@@ -1,0 +1,99 @@
+# Build output
+target/
+*.class
+*.jar
+*.war
+*.ear
+
+# IDE files
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.project
+.classpath
+
+# Environment files
+.env
+*.env.local
+*.env.*.local
+
+# Credentials and sensitive files
+credentials/
+*.json
+!package.json
+!tsconfig.json
+*.key
+*.pem
+*.p12
+*.jks
+
+# Test output
+test-output/
+target/
+surefire-reports/
+screenshots/
+downloads/
+test-downloads/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*~
+
+# Maven
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# Gradle (if someone converts)
+.gradle/
+build/
+
+# Node (for Playwright)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python (if any scripts added)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+
+# Docker
+.docker/
+docker-compose.override.yml
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Coverage reports
+coverage/
+*.lcov
+.nyc_output/
+
+# Local configuration
+local.properties
+config.local.properties
+
+# Generated files
+generated/
+out/

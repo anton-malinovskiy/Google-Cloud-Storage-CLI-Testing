@@ -1,0 +1,91 @@
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="GCS CLI Test Suite" verbose="2" parallel="classes" thread-count="4">
+    <listeners>
+        <listener class-name="org.testng.reporters.XMLReporter"/>
+        <listener class-name="org.testng.reporters.JUnitReportReporter"/>
+    </listeners>
+
+    <!-- Test for all GCS CLI commands -->
+    <test name="All GCS CLI Commands Test" preserve-order="false">
+        <classes>
+            <!-- Priority: Sign URL Test with Phishing Detection -->
+            <class name="com.gcs.testing.tests.SignUrlTest">
+                <methods>
+                    <include name="testSignUrlWithTextFile"/>
+                    <include name="testSignUrlWithJsonFile"/>
+                    <include name="testSignUrlWithHtmlFile"/>
+                    <include name="testSignUrlWithShortDuration"/>
+                    <include name="testSignUrlWithBinaryFile"/>
+                    <include name="testMultipleSignedUrls"/>
+                    <include name="testSignedUrlFormat"/>
+                </methods>
+            </class>
+
+            <!-- Copy Command Test -->
+            <class name="com.gcs.testing.tests.CopyCommandTest">
+                <methods>
+                    <include name="testCopyLocalToGcs"/>
+                    <include name="testCopyGcsToLocal"/>
+                    <include name="testCopyGcsToGcs"/>
+                    <include name="testCopyRecursive"/>
+                    <include name="testCopyLargeFile"/>
+                    <include name="testCopyWithContentType"/>
+                    <include name="testCopyErrorHandling"/>
+                </methods>
+            </class>
+
+            <!-- List Command Test -->
+            <class name="com.gcs.testing.tests.ListCommandTest">
+                <methods>
+                    <include name="testListEmptyBucket"/>
+                    <include name="testListSingleFile"/>
+                    <include name="testListMultipleFiles"/>
+                    <include name="testListDifferentFileTypes"/>
+                    <include name="testListNestedStructure"/>
+                    <include name="testListWithWildcards"/>
+                    <include name="testListJsonFormat"/>
+                    <include name="testListPerformance"/>
+                    <include name="testListBucketRoot"/>
+                    <include name="testListErrorHandling"/>
+                </methods>
+            </class>
+
+            <!-- Delete Command Test -->
+            <class name="com.gcs.testing.tests.DeleteCommandTest">
+                <methods>
+                    <include name="testDeleteSingleFile"/>
+                    <include name="testDeleteMultipleFiles"/>
+                    <include name="testDeleteWithWildcard"/>
+                    <include name="testDeleteRecursive"/>
+                    <include name="testDeleteNonExistentFile"/>
+                    <include name="testForceDelete"/>
+                    <include name="testDeleteLargeFile"/>
+                    <include name="testDeleteSpecialCharacters"/>
+                    <include name="testBatchDeletionPerformance"/>
+                </methods>
+            </class>
+        </classes>
+    </test>
+
+    <!-- Separate test group for sign-url only (high priority) -->
+    <test name="Sign URL Priority Test" enabled="false">
+        <classes>
+            <class name="com.gcs.testing.tests.SignUrlTest"/>
+        </classes>
+    </test>
+
+    <!-- Test groups configuration -->
+    <groups>
+        <run>
+            <include name="signurl"/>
+            <include name="copy"/>
+            <include name="list"/>
+            <include name="delete"/>
+        </run>
+    </groups>
+
+    <!-- Parameters that can be overridden -->
+    <parameter name="bucket.name" value="${env.GCS_BUCKET_NAME}"/>
+    <parameter name="project.id" value="${env.GCS_PROJECT_ID}"/>
+    <parameter name="test.file.prefix" value="${env.GCS_TEST_FILE_PREFIX}"/>
+</suite>
