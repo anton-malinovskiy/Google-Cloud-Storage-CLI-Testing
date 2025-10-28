@@ -268,42 +268,41 @@ public class BrowserHelper implements AutoCloseable {
         Page page = null;
         try {
             page = context.newPage();
-            final Page finalPage = page;
+            logger.info("Attempting to download file from URL: {}", url);
 
-            // Store the response for later use
-            final Response[] responseHolder = {null};
+            // Navigate first and capture the response
+            logger.info("Navigating to URL...");
+            Response response = page.navigate(url);
+            logger.info("Navigation complete, response status: {}", response != null ? response.status() : "null");
 
-            // Try to wait for download event (for binary files with Content-Disposition header)
-            try {
-                Download download = finalPage.waitForDownload(new Page.WaitForDownloadOptions().setTimeout(5000), () -> {
-                    responseHolder[0] = finalPage.navigate(url);
-                });
-                download.saveAs(Paths.get(downloadPath));
-                logger.info("File downloaded successfully via download event to: {}", downloadPath);
-                return true;
-            } catch (com.microsoft.playwright.TimeoutError e) {
-                // Download event didn't trigger - file might be displayed inline (e.g., text files)
-                logger.info("Download event not triggered, attempting to fetch content directly");
-
-                // The page has already navigated inside waitForDownload
-                Response response = responseHolder[0];
-
-                if (response != null && response.status() == 200) {
-                    // Get the content as bytes
-                    byte[] content = response.body();
-
-                    // Write to file
-                    java.nio.file.Files.write(Paths.get(downloadPath), content);
-                    logger.info("File content fetched and saved successfully to: {}", downloadPath);
-                    return true;
-                } else {
-                    logger.error("Failed to fetch file content, status: {}", response != null ? response.status() : "null");
-                    return false;
-                }
+            if (response == null || response.status() != 200) {
+                logger.error("Failed to fetch file, status: {}", response != null ? response.status() : "null");
+                return false;
             }
 
+            // Check Content-Disposition header to see if it's a download
+            String contentDisposition = response.headerValue("Content-Disposition");
+            logger.info("Content-Disposition header: {}", contentDisposition);
+
+            // Get the content as bytes
+            logger.info("Fetching response body...");
+            byte[] content = response.body();
+            logger.info("Response body size: {} bytes", content != null ? content.length : 0);
+
+            if (content == null || content.length == 0) {
+                logger.error("Response body is empty or null");
+                return false;
+            }
+
+            // Write to file
+            java.nio.file.Files.createDirectories(Paths.get(downloadPath).getParent());
+            java.nio.file.Files.write(Paths.get(downloadPath), content);
+            logger.info("File content saved successfully to: {}", downloadPath);
+            return true;
+
         } catch (Exception e) {
-            logger.error("Error downloading file", e);
+            logger.error("Error downloading file: {}", e.getMessage(), e);
+            e.printStackTrace(); // Print full stack trace for debugging
             return false;
         } finally {
             if (page != null) {
