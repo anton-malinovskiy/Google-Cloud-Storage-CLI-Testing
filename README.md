@@ -1,8 +1,5 @@
 # Google Cloud Storage CLI Testing Framework
 
-[![GCS CLI Testing CI/CD](https://github.com/YOUR_USERNAME/YOUR_REPO_NAME/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/YOUR_REPO_NAME/actions/workflows/ci.yml)
-[![Scheduled Tests](https://github.com/YOUR_USERNAME/YOUR_REPO_NAME/actions/workflows/scheduled-tests.yml/badge.svg)](https://github.com/YOUR_USERNAME/YOUR_REPO_NAME/actions/workflows/scheduled-tests.yml)
-
 Automated testing framework for Google Cloud Storage CLI (gcloud storage) commands with a focus on detecting phishing warnings when accessing signed URLs.
 
 ## Overview
